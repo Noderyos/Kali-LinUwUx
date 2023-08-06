@@ -1,0 +1,236 @@
+#!/bin/sh
+# postinst script for kali-defaults
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see https://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+FILES_TO_DIVERT="
+/etc/skel/.bashrc
+/etc/ssl/openssl.cnf
+/etc/zsh/newuser.zshrc.recommended
+/etc/zsh/zprofile
+/etc/xdg/autostart/gnome-software-service.desktop
+/etc/xrdp/xrdp.ini
+/usr/lib/python3.11/EXTERNALLY-MANAGED
+/usr/share/chromium/initial_bookmarks.html
+/usr/share/dbus-1/services/org.kde.kdeconnect.service
+/usr/share/firefox-esr/distribution/distribution.ini
+/usr/share/samba/smb.conf
+/usr/share/applications/org.kde.discover.desktop
+" # END FILES_TO_DIVERT
+
+install_config_file() {
+    local file=$1
+    local opt=$2
+    local orig_file="/usr/share/kali-defaults$file"
+    if [ "$opt" = "force" ] || ([ ! -e "$file" ] && [ -e "$orig_file" ]); then
+        echo "Installing $orig_file as $file"
+        mkdir -p "$(dirname "$file")"
+        cp "$orig_file" "$file"
+    fi
+}
+
+set_env_header_if_unset() {
+    if grep -q '^# STOP KALI-DEFAULTS CONFIG' /etc/environment; then
+	return
+    fi
+
+    echo "Adding KALI-DEFAULTS header to /etc/environment"
+    {
+    echo "# START KALI-DEFAULTS CONFIG"
+    echo "# Everything from here and until STOP KALI-DEFAULTS CONFIG"
+    echo "# was installed by the kali-defaults package, and it will"
+    echo "# be removed if ever the kali-defaults package is removed."
+    echo "# If you want to disable a line, please do NOT remove it,"
+    echo "# as it would be added back when kali-defaults is upgraded."
+    echo "# Instead, comment the line out, and your change will be"
+    echo "# preserved across upgrades."
+    echo "# STOP KALI-DEFAULTS CONFIG"
+    } >> /etc/environment
+}
+
+set_env_var_if_unset() {
+    local setting=$1
+    local value=$2
+
+    # Bail out if the setting is set or is commented out
+    if grep -q "^#* *${setting}=" /etc/environment; then
+	return
+    fi
+
+    # Insert the setting just before the STOP marker
+    echo "Setting ${setting} in /etc/environment"
+    sed -i "/^# STOP KALI-DEFAULTS CONFIG/i ${setting}=${value}" \
+	/etc/environment
+}
+
+configure_environment() {
+    echo "Configuring /etc/environment"
+
+    # Hack for piuparts: break the hard link
+    if [ -n "$PIUPARTS_TEST" ]; then
+        cp /etc/environment /etc/environment.tmp
+	mv /etc/environment.tmp /etc/environment
+    fi
+
+    set_env_header_if_unset
+
+    # Force PATH via /etc/environment so that non-root users have system tools
+    # available too (those in */sbin/)
+    set_env_var_if_unset 'PATH' \
+	'/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games'
+
+    # Propose to install commands not found
+    set_env_var_if_unset COMMAND_NOT_FOUND_INSTALL_PROMPT 1
+
+    # Opt-out of powershell auto update
+    # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_update_notifications
+    set_env_var_if_unset POWERSHELL_UPDATECHECK Off
+
+    # Opt-out of powershell telemetry reporting
+    # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_telemetry
+    set_env_var_if_unset POWERSHELL_TELEMETRY_OPTOUT 1
+
+    # Opt-out of dotnet sdk telemetry reporting
+    # https://docs.microsoft.com/en-us/dotnet/core/tools/telemetry
+    set_env_var_if_unset DOTNET_CLI_TELEMETRY_OPTOUT 1
+}
+
+overwrite_file() {
+    local file="$1"
+    local reference="$2"
+    if [ -e "$file" ] && [ ! -e "$file.original" ]; then
+	cp -v "$file" "$file.original"
+    fi
+    cp -v "$reference" "$file"
+}
+
+configure_root_account() {
+    echo "Configuring root account"
+    overwrite_file /root/.bashrc /etc/skel/.bashrc
+    overwrite_file /root/.zshrc /etc/skel/.zshrc
+}
+
+if [ "$1" = "configure" ]; then
+    if dpkg --compare-versions "$2" lt-nl 2.0~3; then
+	dpkg-divert --rename --package kali-defaults \
+	            --divert /usr/share/themes/Adwaita/metacity-1/metacity-theme-3.xml.original \
+                    --remove /usr/share/themes/Adwaita/metacity-1/metacity-theme-3.xml
+    fi
+    if dpkg --compare-versions "$2" lt-nl 2.0~14; then
+	dpkg-divert --rename --package kali-defaults \
+	            --divert /usr/share/xsessions/default.desktop \
+                    --remove /usr/share/xsessions/gnome-fallback.desktop
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2017.2.0; then
+        for file in /etc/iceweasel/profile/localstore.rdf \
+                    /etc/iceweasel/profile/bookmarks.html
+        do
+            dpkg-divert --rename --package kali-defaults \
+                        --divert $file.original \
+                        --remove $file
+        done
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2017.2.1; then
+	rm -f /etc/X11/Xsession.d/52kali_fix_lang
+	rm -f /etc/X11/Xsession.d/52kali_noautomount
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2021.2.0; then
+	 # Drop PATH= from /etc/environment. No worries, we add
+	 # it again with configure_environment().
+	 sed -i '\|^PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/games:/usr/games|d' /etc/environment
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2021.4.0; then
+	dpkg-divert --rename --package kali-defaults \
+	            --divert /usr/share/applications/org.gnome.Software.desktop.original \
+	            --remove /usr/share/applications/org.gnome.Software.desktop
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2022.1.2; then
+	install_config_file /etc/skel/.bashrc force
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2022.3.2; then
+	install_config_file /etc/ssl/openssl.cnf force
+    fi
+
+    if dpkg --compare-versions "$2" lt-nl 2022.4.6; then
+	dpkg-divert --rename --package kali-defaults \
+	            --divert /etc/xdg/autostart/kdeconnectd.desktop.original \
+	            --remove /etc/xdg/autostart/kdeconnectd.desktop
+    fi
+
+    for file in $FILES_TO_DIVERT; do
+	install_config_file "$file"
+    done
+
+    configure_environment
+
+    if [ "$2" = "" ]; then
+	configure_root_account
+	# Rebuilding the initramfs so that it embeds our
+	# /etc/systemd/network/* changes
+	dpkg-trigger --no-await update-initramfs
+    fi
+
+    # Apply kernel sysctl settings
+    if [ -x /lib/systemd/systemd-sysctl ] && [ -d /run/systemd/system ]; then
+        for file in /usr/lib/sysctl.d/50-kali-defaults-*.conf; do
+            /lib/systemd/systemd-sysctl $(basename $file) || true
+        done
+    fi
+fi
+
+# dh_installdeb will replace this with shell code automatically
+# generated by other debhelper scripts.
+
+# Automatically added by dh_systemd_enable/13.11.4
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	# The following line should be removed in trixie or trixie+1
+	deb-systemd-helper unmask 'regenerate-ssh-host-keys.service' >/dev/null || true
+
+	# was-enabled defaults to true, so new installations run enable.
+	if deb-systemd-helper --quiet was-enabled 'regenerate-ssh-host-keys.service'; then
+		# Enables the unit on first installation, creates new
+		# symlinks on upgrades if the unit file has changed.
+		deb-systemd-helper enable 'regenerate-ssh-host-keys.service' >/dev/null || true
+	else
+		# Update the statefile to add new symlinks (if any), which need to be
+		# cleaned up on purge. Also remove old symlinks.
+		deb-systemd-helper update-state 'regenerate-ssh-host-keys.service' >/dev/null || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_systemd_start/13.11.4
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	if [ -d /run/systemd/system ]; then
+		systemctl --system daemon-reload >/dev/null || true
+		if [ -n "$2" ]; then
+			_dh_action=restart
+		else
+			_dh_action=start
+		fi
+		deb-systemd-invoke $_dh_action 'regenerate-ssh-host-keys.service' >/dev/null || true
+	fi
+fi
+# End automatically added section
+
+
+exit 0

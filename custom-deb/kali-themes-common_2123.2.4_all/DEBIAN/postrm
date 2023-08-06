@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+# Automatically added by dh_installdeb/13.11.4
+dpkg-maintscript-helper dir_to_symlink /usr/share/themes/Kali-Light/gtk-3.0/assets ../../Kali-Dark/gtk-3.0/assets 2021.2.2\~ -- "$@"
+# End automatically added section
+# Automatically added by dh_icons/13.11.4
+if command -v update-icon-caches >/dev/null; then
+	update-icon-caches /usr/share/icons/Flat-Remix-Blue-Dark /usr/share/icons/Flat-Remix-Blue-Light /usr/share/icons/Flat-Remix-Purple-Dark /usr/share/icons/desktop-base
+fi
+# End automatically added section

@@ -1,0 +1,2 @@
+// Make apt more reliable with respect to temporary network failures
+Acquire::Retries "3";

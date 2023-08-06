@@ -1,0 +1,8 @@
+image-file-has-unexpected-name (is SVG) [etc/skel/.face]
+package-contains-file-in-etc-skel [etc/skel/.face*]
+package-contains-file-in-etc-skel [etc/skel/.local/*]
+# Config files for genmon and cpugraph xfce4-panel widgets
+# At some point this will be moved to /etc/xdg/xfce4/panel/default.xml
+# https://gitlab.xfce.org/panel-plugins/xfce4-cpugraph-plugin/-/issues/22
+# https://gitlab.xfce.org/panel-plugins/xfce4-genmon-plugin/-/issues/13
+package-contains-file-in-etc-skel [etc/skel/.config/*]

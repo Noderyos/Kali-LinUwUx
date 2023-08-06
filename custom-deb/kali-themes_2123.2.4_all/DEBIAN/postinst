@@ -1,0 +1,172 @@
+#!/bin/sh
+  
+set -e
+
+FILES_TO_DIVERT="
+/etc/gtk-2.0/gtkrc
+/etc/lightdm/lightdm-gtk-greeter.conf
+/etc/plymouth/plymouthd.conf
+/etc/sddm.conf.d/kde_settings.conf
+/etc/xdg/alacritty/alacritty.yml
+/etc/xdg/compton.conf
+/etc/xdg/gtk-3.0/settings.ini
+/etc/xdg/kcm-about-distrorc
+/etc/xdg/kdeglobals
+/etc/xdg/kickoffrc
+/etc/xdg/konsolerc
+/etc/xdg/kscreenlockerrc
+/etc/xdg/kwinrc
+/etc/xdg/menus/xfce-settings-manager.menu
+/etc/xdg/mimeapps.list
+/etc/xdg/picom.conf
+/etc/xdg/plasmarc
+/etc/xdg/qt5ct/qt5ct.conf
+/etc/xdg/qterminal.org/qterminal.ini
+/etc/xdg/terminator/config
+/etc/xdg/Thunar/accels.scm
+/etc/xdg/Thunar/uca.xml
+/etc/xdg/xfce4/helpers.rc
+/etc/xdg/xfce4/panel/default.xml
+/etc/xdg/xfce4/terminal/terminalrc
+/etc/xdg/xfce4/whiskermenu/defaults.rc
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/thunar.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+/etc/xdg/xfce-mimeapps.list
+/etc/xdg/yakuakerc
+" # END FILES_TO_DIVERT
+
+install_all() {
+    local opt=$1
+    local file=
+    for file in $FILES_TO_DIVERT; do
+       install_config_file "$file" "$opt"
+    done
+}
+
+install_config_file() {
+    local file=$1
+    local opt=$2
+    local orig_file="/usr/share/kali-themes$file"
+    if [ "$opt" = "force" ] || ([ ! -e "$file" ] && [ -e "$orig_file" ]); then
+	echo "Installing $orig_file as $file"
+	mkdir -p "$(dirname "$file")"
+	cp "$orig_file" "$file"
+    fi
+}
+
+remove_config_file() {
+    local file=$1
+    rm -f "$file"
+    dpkg-divert --rename --package kali-themes \
+        --divert "$file.original" \
+        --remove "$file"
+}
+
+if [ "$1" = "configure" ]; then
+    if [ -z "$2" ]; then
+	# Initial install
+	install_all force
+    else
+	# Upgrade all files once
+	if dpkg --compare-versions "$2" lt "2019.4.18"; then
+	    install_all force
+	fi
+	if dpkg --compare-versions "$2" lt "2020.2.3"; then
+	    # Force upgrade modified config files
+	    install_config_file /etc/xdg/xfce4/terminal/terminalrc force
+	    install_config_file /etc/xdg/kscreenlockerrc force
+	fi
+	if dpkg --compare-versions "$2" lt "2021.1.1"; then
+	    remove_config_file /etc/xdg/Trolltech.conf
+	fi
+	if dpkg --compare-versions "$2" lt "2021.3.0"; then
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml force
+	    install_config_file /etc/xdg/qterminal.org/qterminal.ini force
+	    install_config_file /etc/xdg/kdeglobals force
+	    install_config_file /etc/xdg/xfce4/helpers.rc force
+	fi
+	if dpkg --compare-versions "$2" lt "2021.4.1"; then
+	    install_config_file /etc/xdg/kwinrc force
+	fi
+	if dpkg --compare-versions "$2" lt "2021.4.2"; then
+	    install_config_file /etc/xdg/kickoffrc force
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml force
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml force
+	fi
+	if dpkg --compare-versions "$2" lt "2022.1.0"; then
+	    install_config_file /etc/xdg/qt5ct/qt5ct.conf force
+	    install_config_file /etc/lightdm/lightdm-gtk-greeter.conf force
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml force
+	fi
+	if dpkg --compare-versions "$2" lt "2022.2.0"; then
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml force
+	fi
+	if dpkg --compare-versions "$2" lt "2022.4.3"; then
+	    install_config_file /etc/xdg/mimeapps.list force
+	    install_config_file /etc/xdg/picom.conf force
+	    install_config_file /etc/xdg/terminator/config force
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/thunar.xml force
+	fi
+	if dpkg --compare-versions "$2" lt "2022.4.4"; then
+	    install_config_file /etc/xdg/xfce-mimeapps.list force
+	fi
+	if dpkg --compare-versions "$2" lt "2023.1.0"; then
+	    install_config_file /etc/xdg/menus/xfce-settings-manager.menu force
+	    install_config_file /etc/xdg/Thunar/accels.scm force
+	    install_config_file /etc/xdg/Thunar/uca.xml force
+	    install_config_file /etc/xdg/xfce4/whiskermenu/defaults.rc force
+	    install_config_file /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml force
+	fi
+	if dpkg --compare-versions "$2" lt "2023.1.3"; then
+	    install_config_file /etc/xdg/alacritty/alacritty.yml force
+	    install_config_file /etc/xdg/xfce4/panel/default.xml force
+	fi
+	if dpkg --compare-versions "$2" lt "2023.1.6"; then
+	    install_config_file /etc/xdg/kcm-about-distrorc force
+	fi
+	# Install remaining new files
+	install_all
+    fi
+    # Configure /root/.face to have a red-background avatar
+    if [ ! -e /root/.face ]; then
+        cp /usr/share/kali-themes/.face-root.svg /root/.face
+    fi
+    ln -sf /root/.face /root/.face.icon
+    # If installed, replace default-browser with firefox in xfce4-panel
+    if dpkg-query --list firefox-esr | grep -q "^[ih][HUFWti] " ; then
+        echo "firefox-esr package found, replacing default-browser in xfce4-panel"
+        sed -i 's/xfce4-web-browser/firefox-esr/' /etc/xdg/xfce4/panel/default.xml
+    fi
+    # Use lighter configuration for xfce4-panel in arm devices
+    if dpkg --print-architecture | grep -q arm; then
+        sed -i '/<!--/d' /etc/xdg/xfce4/panel/default.xml
+    fi
+    # Copy grub theme to /boot
+    mkdir -p /boot/grub/themes/kali
+    cp -r /usr/share/grub/themes/kali/* /boot/grub/themes/kali/
+    # Set grub theme background
+    # Use background with 16x9 aspect ratio for efi installations detected
+    # by the presence of grub-efi* packages (not the grub-efi*-bin which don’t
+    # necessary account for grub being the active bootloader).
+    if dpkg-query --list grub-efi* | grep -v "^... grub-efi[^[:space:]]*-bin" | grep -q "^[ih][HUFWti] " ; then
+        echo "grub-efi* packages found, using 16/9 as default grub background ratio"
+    else
+        echo "No grub-efi* package found, using 4/3 as default grub background ratio"
+        sed -i 's/grub-16x9\.png/grub-4x3.png/' /boot/grub/themes/kali/theme.txt
+    fi
+    # Rebuild the grub configuration with our config changes
+    if command -v update-grub >/dev/null; then
+	update-grub || true
+    fi
+    # Rebuild the initrd for plymouth
+    if command -v update-initramfs >/dev/null; then
+	update-initramfs -u
+    fi
+fi
+
+

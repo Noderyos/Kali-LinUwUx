@@ -3,7 +3,6 @@ Source: kali-wallpapers
 Version: 2123.2.0
 Architecture: all
 Maintainer: Kali Developers <devel@kali.org>
-Installed-Size: 10025
 Breaks: kali-themes-common (<< 2020.4.4), kali-wallpapers-2022 (<< 2023.1.0~)
 Replaces: kali-themes-common (<< 2020.4.4), kali-wallpapers-2022 (<< 2023.1.0~)
 Section: misc

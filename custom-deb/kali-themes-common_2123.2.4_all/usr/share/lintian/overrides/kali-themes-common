@@ -1,0 +1,12 @@
+# This is fine, we use "TryExec" to hide it when it's not available
+desktop-command-not-in-package mousepad [usr/share/applications/xfce-text-editor.desktop]
+# We don't want this desktop file to be easily found in searches as it
+# duplicates another desktop file. It's here mainly to appear in the
+# Xfce favorite section under a generic name that we control ("Text
+# Editor" instead of "Mousepad")
+desktop-entry-lacks-keywords-entry [usr/share/applications/xfce-text-editor.desktop]
+# We don't want this desktop file to be easily found in searches as it
+# is only used to set the default browser in some desktops
+desktop-entry-lacks-keywords-entry [usr/share/applications/default-browser.desktop]
+# This is not documentation
+package-contains-documentation-outside-usr-share-doc [usr/share/grub/themes/kali/theme.txt]

@@ -1,0 +1,8 @@
+# Ask gdm to display our logo (even when kali-desktop-base is not here)
+# Also overrides the broken stuff in /usr/share/gdm/dconf/91-kali-settings
+# from kali-root-login.
+
+# Login manager options
+# =====================
+[org/gnome/login-screen]
+logo='/usr/share/images/kali-logos/logo-text-128.png'

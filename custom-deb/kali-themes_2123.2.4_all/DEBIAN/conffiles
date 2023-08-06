@@ -1,0 +1,13 @@
+/etc/X11/Xsession.d/90kali-themes
+/etc/default/grub.d/kali-themes.cfg
+/etc/environment.d/95kali-themes.conf
+/etc/skel/.config/cherrytree/config.cfg
+/etc/skel/.config/nautilus/scripts-accels
+/etc/skel/.config/xfce4/panel/cpugraph-13.rc
+/etc/skel/.config/xfce4/panel/genmon-15.rc
+/etc/skel/.face
+/etc/skel/.local/share/nautilus/scripts/Terminal
+/etc/xdg/autostart/xcape-super-key-bind.desktop
+/etc/xdg/autostart/xfce-disable-motherboard-beep.desktop
+/etc/xdg/plasma-workspace/env/kali-themes-purple.sh
+/etc/xdg/plasma-workspace/env/kali-themes.sh

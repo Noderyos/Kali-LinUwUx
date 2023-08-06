@@ -1,0 +1,15 @@
+# Yeah, it's not very clean but we don't really care
+font-in-non-font-package [usr/share/kali-defaults/web/plugins/themify-icons/fonts/themify.woff]
+font-outside-font-dir [usr/share/kali-defaults/web/plugins/themify-icons/fonts/themify.woff]
+package-contains-documentation-outside-usr-share-doc [usr/share/chromium/initial_bookmarks.html]
+package-contains-documentation-outside-usr-share-doc [usr/share/kali-defaults/web/homepage.html]
+# We ensure kali-defaults is installed early enough
+package-contains-file-in-etc-skel [etc/skel/.zshrc]
+package-contains-file-in-etc-skel [etc/skel/.java/*]
+package-contains-file-in-etc-skel [etc/skel/.config/*]
+# These scripts are not for end-users, no need for a man page
+no-manual-page [usr/bin/*]
+# We have to be aware of piuparts, sorry lintian
+maintainer-script-should-not-use-piuparts-variable "PIUPARTS_TEST" [postinst:*]
+# I don't think we actively support alternative (ie. non-systemd) init systems
+package-supports-alternative-init-but-no-init.d-script [*]

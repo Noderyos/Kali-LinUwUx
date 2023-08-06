@@ -1,0 +1,17 @@
+Package: kali-themes
+Version: 2123.2.4
+Architecture: all
+Maintainer: Kali Developers <devel@kali.org>
+Installed-Size: 227
+Depends: fonts-cantarell, fonts-firacode, gtk2-engines-pixbuf, kali-themes-common (= 2123.2.4), librsvg2-common, plymouth-label, dconf-gsettings-backend | gsettings-backend
+Breaks: gnome-shell (>= 45~), gnome-shell (<< 44~), kali-defaults (<< 2019.4.0), kali-desktop-xfce (<< 2020.2.18), kali-menu (<< 2019.4.4)
+Replaces: kali-defaults (<< 2019.4.0)
+Section: misc
+Priority: optional
+Description: Configure all desktops to use the Kali theme
+ Installing this package should configure most desktops to use the Kali theme
+ by default.
+ .
+ The actual artwork files are provided by kali-themes-common but this package
+ provides configuration files and other settings for each desktop so that
+ they use the Kali theme by default.

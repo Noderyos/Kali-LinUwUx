@@ -1,0 +1,83 @@
+#!/bin/sh
+
+set -e
+
+FILES_TO_DIVERT="
+/etc/gtk-2.0/gtkrc
+/etc/lightdm/lightdm-gtk-greeter.conf
+/etc/plymouth/plymouthd.conf
+/etc/sddm.conf.d/kde_settings.conf
+/etc/xdg/alacritty/alacritty.yml
+/etc/xdg/compton.conf
+/etc/xdg/gtk-3.0/settings.ini
+/etc/xdg/kcm-about-distrorc
+/etc/xdg/kdeglobals
+/etc/xdg/kickoffrc
+/etc/xdg/konsolerc
+/etc/xdg/kscreenlockerrc
+/etc/xdg/kwinrc
+/etc/xdg/menus/xfce-settings-manager.menu
+/etc/xdg/mimeapps.list
+/etc/xdg/picom.conf
+/etc/xdg/plasmarc
+/etc/xdg/qt5ct/qt5ct.conf
+/etc/xdg/qterminal.org/qterminal.ini
+/etc/xdg/terminator/config
+/etc/xdg/Thunar/accels.scm
+/etc/xdg/Thunar/uca.xml
+/etc/xdg/xfce4/helpers.rc
+/etc/xdg/xfce4/panel/default.xml
+/etc/xdg/xfce4/terminal/terminalrc
+/etc/xdg/xfce4/whiskermenu/defaults.rc
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/thunar.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-desktop.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-keyboard-shortcuts.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfce4-session.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xfwm4.xml
+/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+/etc/xdg/xfce-mimeapps.list
+/etc/xdg/yakuakerc
+" # END FILES_TO_DIVERT
+
+setup_diversion() {
+    local file=$1
+    local divert_opts="--rename"
+    if [ -e "$file" ]; then
+	if dpkg --search "$file" >/dev/null 2>&1; then
+	    # Keep original file to avoid spurious dpkg prompt
+	    cp "$file" "$file.original"
+	    divert_opts="--no-rename"
+	fi
+    fi
+    dpkg-divert $divert_opts --package kali-themes \
+		--divert "$file.original" \
+		--add "$file"
+}
+
+case "$1" in
+    install)
+	# Handle upgrade from kali-defaults
+	DIVERT_FILE="/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml"
+	if [ "$(dpkg-divert --listpackage $DIVERT_FILE)" = "kali-defaults" ]; then
+	    rm -f $DIVERT_FILE
+	    dpkg-divert --rename --package kali-defaults \
+		--divert $DIVERT_FILE.original \
+                --remove $DIVERT_FILE
+	fi
+	# Setup all the diversions
+	for file in $FILES_TO_DIVERT; do
+	    setup_diversion "$file"
+	done
+    ;;
+    upgrade)
+	# Dynamically add new diversions when required on upgrade
+	for file in $FILES_TO_DIVERT; do
+	    if [ -z "$(dpkg-divert --listpackage "$file")" ]; then
+		setup_diversion "$file"
+	    fi
+	done
+    ;;
+esac
+
+

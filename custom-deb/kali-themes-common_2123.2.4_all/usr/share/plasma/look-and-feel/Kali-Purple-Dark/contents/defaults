@@ -1,0 +1,12 @@
+[kdeglobals][General]
+ColorScheme=KaliPurpleDark
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kali.kali
+theme=Kali
+
+[kdeglobals][Icons]
+Theme=Flat-Remix-Purple-Dark
+
+[plasmarc][Theme]
+name=kali-purple

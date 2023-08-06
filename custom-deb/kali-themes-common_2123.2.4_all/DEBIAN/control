@@ -1,0 +1,17 @@
+Package: kali-themes-common
+Version: 2123.2.4
+Architecture: all
+Maintainer: Kali Developers <devel@kali.org>
+Depends: kali-wallpapers-2023
+Suggests: gtk2-engines-pixbuf, kali-wallpapers-2019.4, kali-wallpapers-2020.4, kali-wallpapers-2022, kali-wallpapers-legacy, librsvg2-common
+Breaks: desktop-base (<< 10.0.3+kali2), gnome-theme-kali (<< 2019.4), kali-desktop-kde (<< 2021.4.1), kali-menu (<< 2021.3.2)
+Replaces: desktop-base (<< 10.0.3+kali2), gnome-theme-kali (<< 2019.4), kali-menu (<< 2021.3.2)
+Provides: gnome-theme-kali
+Section: misc
+Priority: optional
+Description: Kali Themes (data files)
+ This package contains multiple themes for kali. It includes graphical toolkit
+ themes, icon themes, color schemes, desktop backgrounds and more.
+ .
+ This package only contains the actual files, it doesn't change any system
+ setting and doesn't enable any Kali theme by default.

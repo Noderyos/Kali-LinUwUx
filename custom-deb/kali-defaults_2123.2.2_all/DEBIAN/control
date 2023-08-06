@@ -1,0 +1,16 @@
+Package: kali-defaults
+Version: 2123.2.2
+Architecture: all
+Maintainer: Kali Developers <devel@kali.org>
+Recommends: tree
+Breaks: gdm3 (<< 40), udev (<< 244-2)
+Section: utils
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://www.kali.org
+Description: Kali default settings
+ This package implements various default settings within Kali.
+ .
+ The size of this package (including its dependencies) should be rather limited
+ because it is included in all Kali images, even minimalistic ones such as
+ docker images.

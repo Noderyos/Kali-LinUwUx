@@ -1,0 +1,8 @@
+/etc/apt/apt.conf.d/50kali
+/etc/cloud/cloud.cfg.d/20_kali.cfg
+/etc/firefox-esr/kali.js
+/etc/profile.d/kali.sh
+/etc/skel/.config/powershell/Microsoft.PowerShell_profile.ps1
+/etc/skel/.java/.userPrefs/burp/prefs.xml
+/etc/skel/.zshrc
+/etc/ssl/kali.cnf
